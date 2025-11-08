@@ -32,7 +32,7 @@ export default function CheckoutStamps() {
     const [cantidad, setCantidad] = useState(cantidadFromUrl);
     const [precioUnitario, setPrecioUnitario] = useState(precioFromUrl);
     const [confirmId, setConfirmId] = useState(idFromUrl);
-
+    console.log(confirmId)
     const { post, loading, errorPost } = usePost();
     const steps = ["Cantidad", "Pago"];
 
@@ -76,7 +76,15 @@ export default function CheckoutStamps() {
                     setConfirmId(response.id);
                 }
             } else {
-                response = await post(`ventas/online/${ventaId}`, sendData, "PUT");
+                const sendDataPut = {
+                    id: confirmId,
+                    cantidad,
+                    precio: precioUnitario,
+                    total,
+                    obs: '',
+                    token
+                };
+                response = await post(`ventas/online`, sendDataPut, "PUT");
             }
 
             if (response) handleNext();

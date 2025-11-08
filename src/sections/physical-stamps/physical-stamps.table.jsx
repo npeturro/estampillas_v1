@@ -17,7 +17,7 @@ import LocalPostOfficeIcon from "@mui/icons-material/LocalPostOffice";
 import { DataGrid } from "@mui/x-data-grid";
 import { esES } from '@mui/x-data-grid/locales';
 import { useState, useMemo } from "react";
-import { getToken } from "../../utils/auth";
+import { getToken, getUser } from "../../utils/auth";
 import { useGET } from "../../hooks/useGET";
 
 export default function PhysicalSalesGrid() {
@@ -26,7 +26,8 @@ export default function PhysicalSalesGrid() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const token = getToken();
-    const [data, loading, error] = useGET(`ventas?apellido=bonavera&fd=2025-09-01&fh=2025-09-24&id=-1&nro_pago=&token=${token}&app_online=1`);
+    const user = getUser();
+    const [data, loading, error] = useGET(`ventas?apellido=${user.apellido ?? "bonavera"}&fd=2025-09-01&fh=2025-09-24&id=-1&nro_pago=&token=${token}&app_online=1`);
 
     if (loading) {
         return (

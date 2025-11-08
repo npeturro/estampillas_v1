@@ -18,20 +18,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import OnlineDetails from './online-details';
 import { useGET } from '../../hooks/useGET';
 import { getToken } from '../../utils/auth';
-// const stamps = [
-//     {
-//         id: "1",
-//         state: "finalizar_compra",
-//         total_stamps: 40,
-//         used_stamps: 25,
-//         stamps: {
-//             id: 133,
-//             cantidad: 7,
-//             precio: 3100
-//         }
+import { esES } from '@mui/x-data-grid/locales';
 
-//     }
-// ];
 
 export default function OnlineStampsTable() {
     const navigate = useNavigate();
@@ -80,14 +68,15 @@ export default function OnlineStampsTable() {
                         month: "2-digit",
                         year: "numeric",
                         hour: "2-digit",
-                        minute: "2-digit"
+                        minute: "2-digit",
+                        hour12: false
                     })
                 )
             }
         },
         {
             field: 'state',
-            headerName: 'Estado de venta',
+            headerName: 'Estado de compra',
             flex: 1,
             renderCell: (params) => {
                 const { fecha_pago, nro_pago, entidad_pago, pago } = params.row;
@@ -195,13 +184,15 @@ export default function OnlineStampsTable() {
                 onPaginationModelChange={(model) => {
                     setPage(model.page);
                 }}
-                pageSizeOptions={[8]}
+                pageSizeOptions={[8, 25]}
                 disableRowSelectionOnClick
                 showToolbar
                 onRowClick={(params) => {
                     setSelectedAppointment(params.row);
                     setIsModalOpen(true);
                 }}
+                localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+
             />
 
             <OnlineDetails

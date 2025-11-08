@@ -9,59 +9,16 @@ import {
     useTheme,
     useMediaQuery,
     Chip,
+    CircularProgress,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LocalPostOfficeIcon from "@mui/icons-material/LocalPostOffice";
 import { DataGrid } from "@mui/x-data-grid";
+import { esES } from '@mui/x-data-grid/locales';
 import { useState, useMemo } from "react";
 import { getToken } from "../../utils/auth";
 import { useGET } from "../../hooks/useGET";
-
-const stamps = [
-    {
-        id: "1446",
-        fecha_creacion: "2025-10-29 16:38:07",
-        total: "320000.00",
-        entidad_pago: "GALICIA",
-        nro_pago: "39425029777",
-        apellido: "BONAVERA",
-        nombre: "DIEGO MARIANO",
-        vendedor: "cgamarra",
-        estampillas: 80,
-        detalle: [
-            {
-                id: "1449",
-                cantidad: "80",
-                precio: "4000.00",
-                subtotal: "320000.00",
-                estampillas:
-                    "52631, 52632, 52633, 52634, 52635, 52636, 52637, 52638, 52639, 52640, 52641, 52642, 52643, 52644, 52645, 52646, 52647, 52648, 52649, 52650, 52651, 52652, 52653, 52654, 52655, 52656, 52657, 52658, 52659, 52660, 52661, 52662, 52663, 52664, 52665, 52666, 52667, 52668, 52669, 52670, 52671, 52672, 52673, 52674, 52675, 52676, 52677, 52678, 52679, 52680, 52681, 52682, 52683, 52684, 52685, 52686, 52687, 52688, 52689, 52690, 52691, 52692, 52693, 52694, 52695, 52696, 52697, 52698, 52699, 52700, 52701, 52702, 52703, 52704, 52705, 52706, 52707, 52708, 52709, 52710",
-            },
-        ],
-    },
-    {
-        id: "1367",
-        fecha_creacion: "2025-09-29 16:16:00",
-        total: "30000.00",
-        entidad_pago: "GALICIA",
-        nro_pago: "39017336265",
-        apellido: "BONAVERA",
-        nombre: "DIEGO MARIANO",
-        vendedor: "cgamarra",
-        estampillas: 10,
-        detalle: [
-            {
-                id: "1370",
-                cantidad: "10",
-                precio: "3000.00",
-                subtotal: "30000.00",
-                estampillas:
-                    "503491, 503492, 503493, 503494, 503495, 503496, 503497, 503498, 503499, 503500",
-            },
-        ],
-    },
-];
 
 export default function PhysicalSalesGrid() {
     const [search, setSearch] = useState("");
@@ -69,22 +26,44 @@ export default function PhysicalSalesGrid() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const token = getToken();
-    // const [data, loading, error] = useGET(`ventas?apellido=bonavera&fd=2025-09-01&fh=2025-09-24&id=-1&nro_pago=&token=${token}`);
-    // console.log(data)
+    const [data, loading, error] = useGET(`ventas?apellido=bonavera&fd=2025-09-01&fh=2025-09-24&id=-1&nro_pago=&token=${token}&app_online=1`);
 
-    const filtered = useMemo(() => {
-        const lower = search.toLowerCase();
-        return stamps.filter(
-            (s) =>
-                s.nombre.toLowerCase().includes(lower) ||
-                s.apellido.toLowerCase().includes(lower) ||
-                s.vendedor.toLowerCase().includes(lower) ||
-                s.entidad_pago.toLowerCase().includes(lower) ||
-                s.id.includes(lower)
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <CircularProgress />
+            </div>
         );
-    }, [search]);
+    }
+
+    if (error) {
+        return (
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                    Ocurrió un error al cargar los datos. Si el error persiste, contáctese con la administración.
+                </table>
+            </div>
+        );
+    }
 
     const columns = [
+        {
+            field: 'fecha_creacion',
+            headerName: 'Fecha',
+            flex: 1,
+            renderCell: (params) => {
+                return (
+                    new Date(params.row.fecha_creacion).toLocaleDateString("es-AR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false
+                    })
+                )
+            }
+        },
         {
             field: "nombre",
             headerName: "Nombre completo",
@@ -145,37 +124,6 @@ export default function PhysicalSalesGrid() {
                 justifyContent: "space-between",
             }}
         >
-            <Stack
-                direction={isMobile ? "column" : "row"}
-                spacing={1}
-                justifyContent="space-between"
-                alignItems={isMobile ? "stretch" : "center"}
-                mb={2}
-            >
-                <TextField
-                    variant="outlined"
-                    size="small"
-                    placeholder="Buscar ..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    sx={{
-                        flex: 1,
-                        backgroundColor: "#fff",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": {
-                            borderRadius: 2,
-                            fontSize: 14,
-                        },
-                    }}
-                />
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ textAlign: isMobile ? "right" : "left" }}
-                >
-                    {filtered.length} resultados
-                </Typography>
-            </Stack>
 
             <Box
                 sx={{
@@ -191,12 +139,14 @@ export default function PhysicalSalesGrid() {
                 }}
             >
                 <DataGrid
-                    rows={filtered}
+                    rows={data}
                     columns={columns}
                     pageSize={5}
+                    showToolbar
                     rowsPerPageOptions={[5, 10]}
                     disableRowSelectionOnClick
                     onRowClick={(params) => setSelected(params.row)}
+                    localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                 />
             </Box>
 

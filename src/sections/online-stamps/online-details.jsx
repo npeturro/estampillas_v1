@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -23,7 +23,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
     const [openConfirm, setOpenConfirm] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
 
-    const totalStamps = data?.total_stamps || 0;
+    const totalStamps = data?.estampillas || 0;
 
     const stampsList = useMemo(
         () =>
@@ -37,6 +37,14 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
     const filteredList = stampsList.filter((item) =>
         item.name.toLowerCase().includes(search.toLowerCase())
     );
+
+    useEffect(() => {
+        if (isOpen) {
+            setSelected(data?.used_stamps_ids || []);
+            setIsDirty(false);
+        }
+    }, [isOpen, data]);
+
 
     const handleSelect = (id) => {
         setSelected((prev) => {
@@ -84,7 +92,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                 <DialogContent className="bg-gray-50 space-y-4">
                     <Box className="w-full">
                         <Typography variant="subtitle2" className="text-gray-700 mb-1">
-                            Estampillas usadas: {data.used_stamps} / {data.total_stamps}
+                            Estampillas usadas: 0 / {totalStamps}
                         </Typography>
                         <LinearProgress
                             variant="determinate"
@@ -101,21 +109,37 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                     </Box>
 
                     <Grid container spacing={1}>
-                        {filteredList.map((item) => (
-                            <Grid item xs={12} sm={6} md={3} key={item.id}>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            size="small"
-                                            checked={selected.includes(item.id)}
-                                            onChange={() => handleSelect(item.id)}
-                                            sx={{
-                                                color: "#fbbf24",
-                                                "&.Mui-checked": { color: "#f59e0b" },
+                        {filteredList.map((item) => {
+                            const isSelected = selected.includes(item.id);
+                            return (
+                                <Grid item xs={12} sm={6} key={item.id}>
+                                    <Box
+                                        onClick={() => handleSelect(item.id)}
+                                        sx={{
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 1,
+                                            p: 1,
+                                            borderRadius: 2,
+                                            border: "1px solid #e5e7eb",
+                                            backgroundColor: isSelected ? "#fff8e1" : "#fff", // fondo clarito cuando está seleccionado
+                                            transition: "background-color 0.2s ease, border-color 0.2s ease",
+                                            "&:hover": {
+                                                backgroundColor: isSelected ? "#fff3cd" : "#f9fafb",
+                                            },
+                                        }}
+                                    >
+                                        <img
+                                            src={"src/assets/estampilla_0.png"}
+                                            alt="Estampilla"
+                                            style={{
+                                                width: 70,
+                                                height: 70,
+                                                objectFit: "contain",
+                                                borderRadius: 4,
                                             }}
                                         />
-                                    }
-                                    label={
                                         <Typography
                                             variant="body2"
                                             className="text-gray-700"
@@ -123,17 +147,20 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                                                 whiteSpace: "nowrap",
                                                 overflow: "hidden",
                                                 textOverflow: "ellipsis",
-                                                fontSize: "0.85rem",
+                                                fontSize: "0.9rem",
+                                                fontWeight: isSelected ? 600 : 400,
                                             }}
                                         >
                                             {item.name}
                                         </Typography>
-                                    }
-                                />
-                            </Grid>
-                        ))}
+                                    </Box>
+                                </Grid>
+                            );
+                        })}
                     </Grid>
                 </DialogContent>
+
+
 
                 <DialogActions>
                     <Button

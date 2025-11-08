@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { getToken } from "../utils/auth"; // o donde tengas tu helper
-
+import { getToken, removeToken } from "../utils/auth";
+import { useNavigate } from "react-router-dom";
 
 // const baseURL = import.meta.env.VITE_API_URL;
-const baseURL = "https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/"
+const baseURL = "https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/";
 
 export const useGET = (consult) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!consult) return;
@@ -21,49 +22,38 @@ export const useGET = (consult) => {
       setLoading(true);
       setError(null);
 
-      const token = getToken(); 
-      const headers = token
-        ? { Authorization: `Bearer ${token}` }
-        : {};
+      const token = getToken();
+      // const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const maxRetries = 3;
-      let attempt = 0;
-      let success = false;
+      try {
+        const response = await axios.get(`${baseURL}${consult}`);
+        // const response = await axios.get(`${baseURL}${consult}`, { headers });
 
-      while (attempt < maxRetries && !success && isMounted) {
-        try {
-          const response = await axios.get(
-            `${baseURL}${consult}`,
-            { headers }
-          );
-
-          if (response.status < 200 || response.status >= 300) {
-            throw new Error("Error en la red: " + response.statusText);
-          }
-
-          if (isMounted) {
-            setData(response.data);
-          }
-          success = true;
-        } catch (err) {
-          attempt++;
-          if (attempt >= maxRetries && isMounted) {
-            setError(err);
-          }
+        if (response.status < 200 || response.status >= 300) {
+          throw new Error("Error en la red: " + response.statusText);
         }
-      }
 
-      if (isMounted) {
-        setLoading(false);
+        if (isMounted) setData(response.data);
+
+      } catch (err) {
+        if (err.response && [401, 403].includes(err.response.status)) {
+          removeToken();
+          navigate("/login");
+          return;
+        }
+
+        if (isMounted) setError(err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
 
     return () => {
-      isMounted = false;
+      isMounted = false; 
     };
-  }, [consult]);
+  }, [consult, navigate]);
 
   return [data, loading, error];
 };

@@ -13,7 +13,7 @@ export function usePut() {
         setLoading(true);
         setError(null);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await axios.put(`${baseURL}${url}`, payload, {
                 headers: {
                     'Content-Type': 'application/json',

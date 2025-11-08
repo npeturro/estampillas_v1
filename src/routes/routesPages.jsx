@@ -16,10 +16,10 @@ const RoutesPage = ({ location }) => {
         <Routes location={location}>
             {/* <Route path="/" element={<Index />} /> */}
             <Route path="/login" element={<Login />} />
-            <Route path="/online_stamps" element={<MainLayoutLoged><OnlineStamps /></MainLayoutLoged>} />
-            <Route path="/physical_stamps" element={<MainLayoutLoged><PhysicalStamps /></MainLayoutLoged>} />
-            <Route path="/checkout_stamps" element={<MainLayoutLoged><CheckoutStamps /></MainLayoutLoged>} />
-            <Route path="/checkout_stamps/success" element={<MainLayoutLoged><CheckoutSuccess /></MainLayoutLoged>} />
+            <Route path="/online_stamps" element={<ProtectedRoute><MainLayoutLoged><OnlineStamps /></MainLayoutLoged></ProtectedRoute>} />
+            <Route path="/physical_stamps" element={<ProtectedRoute><MainLayoutLoged><PhysicalStamps /></MainLayoutLoged></ProtectedRoute>} />
+            <Route path="/checkout_stamps" element={<ProtectedRoute><MainLayoutLoged><CheckoutStamps /></MainLayoutLoged></ProtectedRoute>} />
+            <Route path="/checkout_stamps/success" element={<ProtectedRoute><MainLayoutLoged><CheckoutSuccess /></MainLayoutLoged></ProtectedRoute>} />
             {/* <Route path="/checkout" element={<Checkout />} />
             <Route path="/admin/dashboard" element={<SaProtectedRoute><MainLayoutLoged><Dashboard /></MainLayoutLoged></SaProtectedRoute>} />
             <Route path="/admin/appointments" element={<SaProtectedRoute><MainLayoutLoged><AppointmentsTable /></MainLayoutLoged></SaProtectedRoute>} />

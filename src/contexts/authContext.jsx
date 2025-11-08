@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
             const response = await axios.post(`${baseURL}authenticacion/login`, { mail, password });
 
             const { token } = response.data;
-            localStorage.setItem("token", token);
+            sessionStorage.setItem("token", token);
 
             const decoded = jwtDecode(token);
             const userMail = decoded?.mail;

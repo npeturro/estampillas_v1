@@ -14,49 +14,92 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useState, useEffect } from 'react';
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import OnlineDetails from './online-details';
-const stamps = [
-    {
-        id: "1",
-        state: "finalizar_compra",
-        total_stamps: 40,
-        used_stamps: 25,
-        stamps: {
-            id: 133,
-            cantidad: 7,
-            precio: 3100
-        }
+import { useGET } from '../../hooks/useGET';
+import { getToken } from '../../utils/auth';
+// const stamps = [
+//     {
+//         id: "1",
+//         state: "finalizar_compra",
+//         total_stamps: 40,
+//         used_stamps: 25,
+//         stamps: {
+//             id: 133,
+//             cantidad: 7,
+//             precio: 3100
+//         }
 
-    }
-];
+//     }
+// ];
 
 export default function OnlineStampsTable() {
     const navigate = useNavigate();
+    const token = getToken();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
+    const [data, loading, error] = useGET(`ventas/online?token=${token}`);
 
+    const initialPage = parseInt(searchParams.get("p") || "1", 10) - 1;
+    const [page, setPage] = useState(initialPage);
+
+    // Actualizar la URL cuando cambie la página
+    useEffect(() => {
+        setSearchParams({ p: page + 1 });
+    }, [page, setSearchParams]);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <CircularProgress />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                    Ocurrió un error al cargar los datos. Si el error persiste, contáctese con la administración.
+                </table>
+            </div>
+        );
+    }
 
     const columns = [
         {
-            field: 'id',
-            headerName: 'Identificador',
+            field: 'fecha_creacion',
+            headerName: 'Fecha',
             flex: 1,
+            renderCell: (params) => {
+                return (
+                    new Date(params.row.fecha_creacion).toLocaleDateString("es-AR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    })
+                )
+            }
         },
         {
             field: 'state',
             headerName: 'Estado de venta',
             flex: 1,
             renderCell: (params) => {
-                const isFinalizada = params.value === "finalizada";
-                const isPendiente = params.value === "finalizar_compra";
+                const { fecha_pago, nro_pago, entidad_pago } = params.row;
+
+                const isPendiente = !fecha_pago && !nro_pago && !entidad_pago;
+                const isFinalizada = !isPendiente;
 
                 if (isFinalizada) {
                     return (
                         <Chip
                             icon={<CheckCircleIcon />}
-                            label="Finalizada"
+                            label="Aprobado"
                             color="success"
                             size="small"
                             variant="outlined"
@@ -74,7 +117,7 @@ export default function OnlineStampsTable() {
                     return (
                         <Chip
                             icon={<ShoppingCartIcon />}
-                            label="Finalizar compra"
+                            label="Pendiente de pago"
                             color="warning"
                             size="small"
                             clickable
@@ -105,15 +148,21 @@ export default function OnlineStampsTable() {
             }
         },
         {
+            field: 'total',
+            headerName: 'Total',
+            flex: 1,
+            renderCell: (params) => { return (`$${params.row.total}`) }
+        },
+        {
             field: 'total_stamps',
             headerName: 'Total de estampillas',
             flex: 1,
             renderCell: (params) => {
-                const { total_stamps, used_stamps } = params.row;
+                const { estampillas } = params.row;
 
                 return (
                     <Chip
-                        label={`${used_stamps}/${total_stamps}`}
+                        label={`0/${estampillas}`}
                         color="success"
                         size="small"
                         clickable
@@ -121,7 +170,6 @@ export default function OnlineStampsTable() {
                         sx={{
                             fontWeight: 500,
                             borderRadius: "8px",
-                            pl: "4px",
                             '& .MuiChip-icon': { color: "green" } // tono ámbar
                         }}
                     />
@@ -135,12 +183,16 @@ export default function OnlineStampsTable() {
     return (
         <Box sx={{ height: '100%', width: '100%' }}>
             <DataGrid
-                rows={stamps}
+                rows={data}
                 columns={columns}
                 initialState={{
                     pagination: {
-                        paginationModel: { pageSize: 8 },
+                        paginationModel: { pageSize: 8, page },
                     },
+                }}
+                page={page}
+                onPaginationModelChange={(model) => {
+                    setPage(model.page);
                 }}
                 pageSizeOptions={[8]}
                 disableRowSelectionOnClick

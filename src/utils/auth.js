@@ -1,17 +1,16 @@
 import { jwtDecode } from "jwt-decode";
 
 
-// Guardo el token en localStorage
+// Guardo el token en sessionStorage
 export const setToken = (token) => {
-    localStorage.setItem("token", token);
+    sessionStorage.setItem("token", token);
 };
 export const setUser = (us) => {
-    localStorage.setItem("us", us);
+    sessionStorage.setItem("us", JSON.stringify(us));
 };
-
 // Obtengo el token
 export const getToken = () => {
-    return localStorage.getItem("token");
+    return sessionStorage.getItem("token");
 };
 export const getUser = () => {
     const token = getToken();
@@ -20,13 +19,15 @@ export const getUser = () => {
     //     const decoded = jwtDecode(token);
     //     return decoded.data;
     // }
-    return localStorage.getItem("us");
+    const stored = sessionStorage.getItem("us");
+    return stored ? JSON.parse(stored) : null
 
 };
 
 // Elimino el token (logout)
 export const removeToken = () => {
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("us");
 };
 
 // Verifico si el token es válido (no expirado)
@@ -34,12 +35,7 @@ export const isAuthenticated = () => {
     const token = getToken();
     if (!token) return false;
 
-    try {
-        const { exp } = jwtDecode(token);
-        return exp * 1000 > Date.now(); // Comparar con el tiempo actual ya q viene 1746915479  
-    } catch (err) {
-        return false;
-    }
+    return true
 };
 
 // Obtener los datos del usuario desde el token

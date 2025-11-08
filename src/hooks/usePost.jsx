@@ -15,16 +15,19 @@ export function usePost() {
         setError(null);
 
         try {
-            const token = localStorage.getItem('token');
+            // const token = sessionStorage.getItem('token');
 
             const response = await axios({
                 url: `${baseURL}${url}`,
                 method,
                 data: payload,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token ? `Bearer ${token}` : '',
+                    'Content-Type': 'application/json'
                 },
+                // headers: {
+                //     'Content-Type': 'application/json',
+                //     'Authorization': token ? `Bearer ${token}` : '',
+                // },
             });
 
             setData(response.data);

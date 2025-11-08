@@ -4,8 +4,10 @@ import { Menu, MenuItem, IconButton } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LocalPostOfficeIcon from "@mui/icons-material/LocalPostOffice";
 import MenuIcon from "@mui/icons-material/Menu";
+import KeyIcon from '@mui/icons-material/Key';
 import CloseIcon from "@mui/icons-material/Close";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { getUser, removeToken } from "../../utils/auth";
 
 export default function TopNav() {
     const [anchorEl, setAnchorEl] = useState(null);
@@ -15,6 +17,7 @@ export default function TopNav() {
     const handleUserClick = (event) => setAnchorEl(event.currentTarget);
     const handleClose = () => setAnchorEl(null);
     const toggleMobileMenu = () => setMobileOpen(!mobileOpen);
+    const user = getUser();
 
     const sections = [
         { id: "sales", label: "Estampillas online", path: "/online_stamps" },
@@ -24,7 +27,15 @@ export default function TopNav() {
     return (
         <nav className="bg-white shadow-md px-4 py-3 flex justify-between items-center relative z-20">
             <div className="flex items-center space-x-2">
-                <LocalPostOfficeIcon className="text-indigo-600" fontSize="medium" />
+                <img
+                    src={"src/assets/logo_ck.png"}
+                    alt="logo"
+                    style={{
+                        width: 50,
+                        height: 50,
+                        objectFit: "contain"
+                    }}
+                />
                 <span className="font-semibold text-gray-800 select-none text-sm sm:text-base">
                     Estampillas v1
                 </span>
@@ -81,17 +92,36 @@ export default function TopNav() {
                 onClose={handleClose}
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                sx={{
+                    "& .MuiPaper-root": {
+                        minWidth: 200,
+                        paddingY: 0.3,
+                        boxShadow: 3,
+                    },
+                    "& .MuiMenuItem-root": {
+                        fontSize: "0.8rem",
+                        paddingY: 0.4,
+                        paddingX: 1.2,
+                    },
+                }}
             >
                 <MenuItem disabled>
-                    <span className="text-gray-700">Usuario: Nicolas Peturro</span>
+                    <div className="flex items-center justify-center gap-1 text-gray-700 w-full">
+                        <KeyIcon className="w-3 h-3 text-gray-500" />
+                        <span>{user.usuario}</span>
+                    </div>
                 </MenuItem>
+
                 <MenuItem
                     onClick={() => {
-                        navigate("/login")
+                        navigate("/login");
+                        removeToken();
                         handleClose();
                     }}
                 >
-                    Cerrar sesión
+                    <div className="flex items-center justify-center w-full">
+                        Cerrar sesión
+                    </div>
                 </MenuItem>
             </Menu>
 

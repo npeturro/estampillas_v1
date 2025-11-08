@@ -5,7 +5,7 @@ import { isAuthenticated } from '../utils/auth';
 export function ProtectedRoute({ children }) {
     // Si no está autenticado (no hay token o expiró)
     if (!isAuthenticated()) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     return children;

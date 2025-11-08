@@ -17,12 +17,12 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     // const { post, loading, error } = usePost();
     // cada vez que cambie `routine` del hook, la guardamos en el context
-    const onSubmit = async (data) => {
-        const userCredentials = {
-            user: data.user,
-            password: data.password
-        };
-        navigate('/online_stamps');
+    // const onSubmit = async (data) => {
+    //     const userCredentials = {
+    //         user: data.user,
+    //         password: data.password
+    //     };
+    //     navigate('/online_stamps');
 
         // const response = await post('login', userCredentials);
 
@@ -33,53 +33,53 @@ export default function Login() {
         //         navigate('/admin/dashboard');
         //     }
         // }
-    };
-    // const onSubmit = async (data) => {
-    //     try {
-    //         setLoading(true);
-    //         // no uso el hook de useGET porq en este no me sirve y no vale la pena armar otro solo para login
-    //         const tokenResponse = await axios.get(`https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/login/estampilla_online?u=${data.user}`);
-
-    //         const token = tokenResponse.data.token;
-    //         if (!token) {
-    //             toast.error("Ha ocurrido un error al intentar ingresar.");
-    //         }
-
-    //         const loginResponse = await axios.post(
-    //             `https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/login/estampilla_online`,
-    //             {
-    //                 t: token,
-    //                 ss: data.password,
-    //             }
-    //         );
-
-    //         const userData = loginResponse.data;
-
-    //         setToken(token);
-    //         setUser(userData);
-    //         // ver esto
-    //         // if (userData.rol === "Administrador") {
-    //         //     navigate("/admin/dashboard");
-    //         // } else {
-    //         //     navigate("/online_stamps");
-    //         // }
-    //         navigate("/online_stamps");
-
-    //     } catch (err) {
-    //         console.error("Error al iniciar sesión:", err);
-    //         toast.error("Error al iniciar sesión. Verificá tus credenciales.");
-    //     } finally{
-    //         setLoading(false);
-    //     }
     // };
+    const onSubmit = async (data) => {
+        try {
+            setLoading(true);
+            // no uso el hook de useGET porq en este no me sirve y no vale la pena armar otro solo para login
+            const tokenResponse = await axios.get(`https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/login/estampilla_online?u=${data.user}`);
+
+            const token = tokenResponse.data.token;
+            if (!token) {
+                toast.error("Ha ocurrido un error al intentar ingresar.");
+            }
+
+            const loginResponse = await axios.post(
+                `https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/login/estampilla_online`,
+                {
+                    t: token,
+                    ss: data.password,
+                }
+            );
+
+            const userData = loginResponse.data;
+
+            setToken(token);
+            setUser(userData);
+            // ver esto
+            // if (userData.rol === "Administrador") {
+            //     navigate("/admin/dashboard");
+            // } else {
+            //     navigate("/online_stamps");
+            // }
+            navigate("/online_stamps");
+
+        } catch (err) {
+            console.error("Error al iniciar sesión:", err);
+            toast.error("Error al iniciar sesión. Verificá tus credenciales.");
+        } finally{
+            setLoading(false);
+        }
+    };
 
     return (
         <>
             <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <img
-                        alt="Your Company"
-                        src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170"
+                        alt="company"
+                        src={"src/assets/logo_ck.png"}
                         className="mx-auto h-40 w-40 object-cover rounded-full shadow-lg"
                     />
                     <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">

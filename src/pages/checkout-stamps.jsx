@@ -93,20 +93,20 @@ export default function CheckoutStamps() {
             cantidad,
             precio: precioUnitario,
             total,
-            callback_url: 'https://circulokinesiologossursantafe.com/estampillas/', //nose si va o no va
+            callback_url: 'https://circulokinesiologossursantafe.com/', //nose si va o no va
             token
         };
         console.log(sendData);
-
-
         try {
+            const response = await post("pagos_online/nave", sendData);
 
-            response = await post("pagos_online/nave", sendData);
-
-            if (response) navigate("/checkout_stamps/success");
-
+            if (typeof response === "string" && response.startsWith("http")) {
+                window.location.href = response;
+            } else {
+                console.error("Respuesta inesperada:", response);
+            }
         } catch (err) {
-            console.error("Error al guardar la venta:", err);
+            console.error("Error al crear el pago NAVE:", err);
         }
     };
 

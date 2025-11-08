@@ -90,10 +90,11 @@ export default function OnlineStampsTable() {
             headerName: 'Estado de venta',
             flex: 1,
             renderCell: (params) => {
-                const { fecha_pago, nro_pago, entidad_pago } = params.row;
+                const { fecha_pago, nro_pago, entidad_pago, pago } = params.row;
 
-                const isPendiente = !fecha_pago && !nro_pago && !entidad_pago;
+                const isPendiente = pago.length === 0;
                 const isFinalizada = !isPendiente;
+
 
                 if (isFinalizada) {
                     return (
@@ -113,7 +114,7 @@ export default function OnlineStampsTable() {
                 }
 
                 if (isPendiente) {
-                    const { stamps } = params.row;
+                    const { id_venta, cantidad, precio } = params.row.detalle[0];
                     return (
                         <Chip
                             icon={<ShoppingCartIcon />}
@@ -124,7 +125,7 @@ export default function OnlineStampsTable() {
                             variant="outlined"
                             onClick={(event) => {
                                 event.stopPropagation(); // evita que se dispare el onRowClick
-                                navigate(`/checkout_stamps?s=1&i=${stamps.id}&c=${stamps.cantidad}&p=${stamps.precio}`);
+                                navigate(`/checkout_stamps?s=1&i=${id_venta}&c=${cantidad}&p=${precio}`);
                             }}
 
                             sx={{

@@ -19,6 +19,9 @@ import OnlineDetails from './online-details';
 import { useGET } from '../../hooks/useGET';
 import { getToken } from '../../utils/auth';
 import { esES } from '@mui/x-data-grid/locales';
+import ApprovedPay from './approved-pay';
+import AddIcon from '@mui/icons-material/Add';
+import RequestStamps from './request_stamps';
 
 
 export default function OnlineStampsTable() {
@@ -26,7 +29,8 @@ export default function OnlineStampsTable() {
     const token = getToken();
     const [searchParams, setSearchParams] = useSearchParams();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isModalOpenEdit, setIsModalOpenEdit] = useState(false);
+    const [isModalOpenApproved, setIsModalOpenApproved] = useState(false);
+    const [isModalOpenRequest, setIsModalOpenRequest] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [data, loading, error] = useGET(`ventas/online?token=${token}`);
 
@@ -79,10 +83,11 @@ export default function OnlineStampsTable() {
             headerName: 'Estado de compra',
             flex: 1,
             renderCell: (params) => {
-                const { fecha_pago, nro_pago, entidad_pago, pago } = params.row;
+                const { fecha_pago, nro_pago, entidad_pago, pago, detalles_pago } = params.row;
+                const estado = detalles_pago[0]?.estado ? JSON.parse(detalles_pago[0].estado) : null;
 
-                const isPendiente = pago.length === 0;
-                const isFinalizada = !isPendiente;
+                const isFinalizada = estado?.name === "APPROVED";
+                const isPendiente = !isFinalizada;
 
 
                 if (isFinalizada) {
@@ -93,6 +98,11 @@ export default function OnlineStampsTable() {
                             color="success"
                             size="small"
                             variant="outlined"
+                            onClick={(event) => {
+                                event.stopPropagation(); // evita que se dispare el onRowClick
+                                setSelectedAppointment(params.row);
+                                setIsModalOpenApproved(true);
+                            }}
                             sx={{
                                 fontWeight: 500,
                                 borderRadius: "8px",
@@ -148,19 +158,40 @@ export default function OnlineStampsTable() {
             headerName: 'Total de estampillas',
             flex: 1,
             renderCell: (params) => {
-                const { estampillas } = params.row;
+                const { estampillas, estampillas_detalle = [], detalle } = params.row;
+                const sinEstampillas = estampillas_detalle.length === 0;
+
+                if (sinEstampillas) {
+                    return (
+                        <Chip
+                            icon={<AddIcon />}
+                            label="Solicitar estampillas"
+                            color="warning"
+                            size="small"
+                            variant="outlined"
+                            onClick={(event) => {
+                                event.stopPropagation(); // evita que se dispare el onRowClick
+                                setSelectedAppointment(params.row);
+                                setIsModalOpenRequest(true);
+                            }}
+                            sx={{
+                                fontWeight: 500,
+                                borderRadius: "8px",
+                                pl: "4px",
+                            }}
+                        />
+                    );
+                }
 
                 return (
                     <Chip
-                        label={`0/${estampillas}`}
+                        label={`${estampillas_detalle.length}/${estampillas}`}
                         color="success"
                         size="small"
-                        clickable
                         variant="outlined"
                         sx={{
                             fontWeight: 500,
                             borderRadius: "8px",
-                            '& .MuiChip-icon': { color: "green" } // tono ámbar
                         }}
                     />
                 );
@@ -198,6 +229,18 @@ export default function OnlineStampsTable() {
             <OnlineDetails
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+                data={selectedAppointment}
+            />
+
+            <ApprovedPay
+                isOpen={isModalOpenApproved}
+                onClose={() => setIsModalOpenApproved(false)}
+                data={selectedAppointment}
+            />
+
+            <RequestStamps
+                isOpen={isModalOpenRequest}
+                onClose={() => setIsModalOpenRequest(false)}
                 data={selectedAppointment}
             />
 

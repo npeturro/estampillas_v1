@@ -24,6 +24,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
     const [isDirty, setIsDirty] = useState(false);
 
     const totalStamps = data?.estampillas || 0;
+    const usedStamps = data?.estampillas_detalle || 0;
 
     const stampsList = useMemo(
         () =>
@@ -96,7 +97,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                         </Typography>
                         <LinearProgress
                             variant="determinate"
-                            value={(data.used_stamps / data.total_stamps) * 100}
+                            value={(usedStamps / totalStamps) * 100}
                             sx={{
                                 height: 10,
                                 borderRadius: 5,

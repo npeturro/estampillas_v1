@@ -32,7 +32,7 @@ export default function CheckoutStamps() {
     const [cantidad, setCantidad] = useState(cantidadFromUrl);
     const [precioUnitario, setPrecioUnitario] = useState(precioFromUrl);
     const [confirmId, setConfirmId] = useState(idFromUrl);
-    console.log(confirmId)
+
     const { post, loading, errorPost } = usePost();
     const steps = ["Cantidad", "Pago"];
 
@@ -65,7 +65,6 @@ export default function CheckoutStamps() {
             token
         };
 
-        console.log(sendData);
 
         try {
             let response;
@@ -104,7 +103,7 @@ export default function CheckoutStamps() {
             callback_url: 'https://circulokinesiologossursantafe.com/', //nose si va o no va
             token
         };
-        console.log(sendData);
+
         try {
             const response = await post("pagos_online/nave", sendData);
 

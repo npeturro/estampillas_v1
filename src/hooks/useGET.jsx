@@ -4,8 +4,7 @@ import axios from "axios";
 import { getToken, removeToken } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 
-// const baseURL = import.meta.env.VITE_API_URL;
-const baseURL = "https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/";
+const baseURL = import.meta.env.VITE_API_URL;
 
 export const useGET = (consult) => {
   const [data, setData] = useState([]);

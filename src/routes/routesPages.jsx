@@ -1,7 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
-import Index from '../pages';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/login';
-import Dashboard from '../pages/dashboard';
 import NotFound from '../pages/notFound';
 import MainLayoutLoged from '../components/layouts/mainLayoutsLoged';
 import { ProtectedRoute } from './protectedRoute.jsx';
@@ -14,20 +12,12 @@ import CheckoutSuccess from '../sections/checkout-stamps/checkout-success.jsx';
 const RoutesPage = ({ location }) => {
     return (
         <Routes location={location}>
-            {/* <Route path="/" element={<Index />} /> */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/online_stamps" element={<ProtectedRoute><MainLayoutLoged><OnlineStamps /></MainLayoutLoged></ProtectedRoute>} />
             <Route path="/physical_stamps" element={<ProtectedRoute><MainLayoutLoged><PhysicalStamps /></MainLayoutLoged></ProtectedRoute>} />
             <Route path="/checkout_stamps" element={<ProtectedRoute><MainLayoutLoged><CheckoutStamps /></MainLayoutLoged></ProtectedRoute>} />
             <Route path="/checkout_stamps/success" element={<ProtectedRoute><MainLayoutLoged><CheckoutSuccess /></MainLayoutLoged></ProtectedRoute>} />
-            {/* <Route path="/checkout" element={<Checkout />} />
-            <Route path="/admin/dashboard" element={<SaProtectedRoute><MainLayoutLoged><Dashboard /></MainLayoutLoged></SaProtectedRoute>} />
-            <Route path="/admin/appointments" element={<SaProtectedRoute><MainLayoutLoged><AppointmentsTable /></MainLayoutLoged></SaProtectedRoute>} />
-            <Route path="/admin/calendar" element={<SaProtectedRoute><MainLayoutLoged><Calendar /></MainLayoutLoged></SaProtectedRoute>} />
-            <Route path="/admin/courts" element={<SaProtectedRoute><MainLayoutLoged><Courts /></MainLayoutLoged></SaProtectedRoute>} />
-            <Route path="/admin/courts/:id" element={<SaProtectedRoute><MainLayoutLoged><CourtDetail /></MainLayoutLoged></SaProtectedRoute>} />
-            <Route path="/admin/settings" element={<SaProtectedRoute><MainLayoutLoged><Settings /></MainLayoutLoged></SaProtectedRoute>} />
-            <Route path="/admin/current_days" element={<SaProtectedRoute><MainLayoutLoged><CancelDays /></MainLayoutLoged></SaProtectedRoute>} /> */}
             <Route path="*" element={<NotFound />} />
         </Routes>
     );

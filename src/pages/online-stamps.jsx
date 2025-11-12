@@ -14,7 +14,7 @@ export default function OnlineStamps() {
             <div className="flex items-center justify-end mb-4">
                 <Chip
                     startDecorator={<AddIcon sx={{ fontSize: 18 }} />}
-                    onClick={() => handleNavigate('/checkout_stamps?step=0')}
+                    onClick={() => handleNavigate('/checkout_stamps')}
                     color="neutral"
                     size="sm"
                     variant="soft"

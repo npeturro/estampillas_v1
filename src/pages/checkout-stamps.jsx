@@ -9,13 +9,20 @@ import {
     Box,
     IconButton,
     Divider,
+    Stack,
+    Chip,
     CircularProgress,
+    Card,
+    CardContent,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { useGET } from "../hooks/useGET";
 import { usePost } from "../hooks/usePost";
 import { getToken, getUser } from "../utils/auth";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 
 
 export default function CheckoutStamps() {
@@ -25,6 +32,7 @@ export default function CheckoutStamps() {
     const user = getUser();
     const [price, loadingp, error] = useGET('estampillas_online/precio');
     const stepFromUrl = parseInt(searchParams.get("s")) || 0;
+    const tipoFromUrl = searchParams.get("t") || "";
     const cantidadFromUrl = parseInt(searchParams.get("c")) || 1;
     const precioFromUrl = parseFloat(searchParams.get("p")) || 0;
     const idFromUrl = parseFloat(searchParams.get("i")) || null;
@@ -32,13 +40,24 @@ export default function CheckoutStamps() {
     const [cantidad, setCantidad] = useState(cantidadFromUrl);
     const [precioUnitario, setPrecioUnitario] = useState(precioFromUrl);
     const [confirmId, setConfirmId] = useState(idFromUrl);
+    const [tipoValor, setTipoValor] = useState(tipoFromUrl);
+    const [data, loadingPago, errorPago] = useGET(
+        idFromUrl ? `pagos_online/nave?token=${token}&id_venta=${idFromUrl}` : null
+    );
+
+
+    const detalles = data[0]?.detalle?.[0];
+    const estado = detalles?.estado ? JSON.parse(detalles.estado) : null;
+    const transaction = detalles?.json_pago ? JSON.parse(detalles.json_pago) : null;
+    const aprobado = estado?.name === "APPROVED";
 
     const { post, loading, errorPost } = usePost();
-    const steps = ["Cantidad", "Pago"];
+    const steps = ["Cantidad", "Pago", "Solicitar estampillas"];
 
     useEffect(() => {
         if (!precioFromUrl && price?.TiposValores?.length > 0) {
             setPrecioUnitario(price.TiposValores[0].Valor);
+            setTipoValor(price.TiposValores[0].Codigo)
         }
     }, [precioFromUrl, price]);
 
@@ -59,6 +78,7 @@ export default function CheckoutStamps() {
         const sendData = {
             id_profesional: user.id,
             cantidad,
+            tipo_valor: tipoValor,
             precio: precioUnitario,
             total,
             obs: '',
@@ -78,6 +98,7 @@ export default function CheckoutStamps() {
                 const sendDataPut = {
                     id: confirmId,
                     cantidad,
+                    tipo_valor: tipoValor,
                     precio: precioUnitario,
                     total,
                     obs: '',
@@ -112,9 +133,15 @@ export default function CheckoutStamps() {
             } else {
                 console.error("Respuesta inesperada:", response);
             }
+
+
         } catch (err) {
             console.error("Error al crear el pago NAVE:", err);
         }
+    };
+    const handleStamps = async () => {
+        const total = precioUnitario * cantidad;
+
     };
 
 
@@ -451,6 +478,74 @@ export default function CheckoutStamps() {
                                     )}
                                 </Button>
                             </Box>
+                        </motion.div>
+                    )}
+
+
+                    {activeStep === 2 && (
+
+                        <motion.div
+                            key="step3"
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -15 }}
+                            transition={{ duration: 0.35 }}
+                            className="flex flex-col gap-4"
+                        >
+
+                            <Box
+                                sx={{
+                                    width: "100%",
+                                    p: 3,
+                                    borderRadius: 3,
+                                    backgroundColor: "#f9fafb",
+                                    boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    gap: 1,
+                                }}
+                            >
+                                <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
+                                    <Chip
+                                        icon={aprobado ? <CheckCircleIcon /> : <CancelIcon />}
+                                        label={aprobado ? "Pago aprobado" : estado?.name || "Desconocido"}
+                                        color={aprobado ? "success" : "error"}
+                                        sx={{ fontWeight: 600, px: 1.5, py: 0.5 }}
+                                    />
+                                    <Typography variant="body2" color="text.secondary">
+                                        {new Date(data[0]?.fecha).toLocaleString("es-AR")}
+                                    </Typography>
+                                </Stack>
+                                <Card variant="outlined">
+                                    <CardContent>
+                                        <Stack direction="row" alignItems="center" spacing={1} mb={1}>
+                                            <ReceiptLongIcon color="primary" />
+                                            <Typography variant="subtitle1" fontWeight={600}>
+                                                Resumen del pago
+                                            </Typography>
+                                        </Stack>
+                                        <Typography variant="body2">ID de pago: {transaction?.id}</Typography>
+                                        <Typography variant="body2">Monto: <strong>${transaction.transactions[0]?.amount?.value || "—"}</strong></Typography>
+
+                                    </CardContent>
+                                </Card>
+
+                            </Box>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 700,
+                                    color: "#1e293b",
+                                    textAlign: "center",
+                                    mb: 1,
+                                }}
+                            >
+                                Solicitar estampillas
+                            </Typography>
+
+
+
                         </motion.div>
                     )}
 

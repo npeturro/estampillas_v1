@@ -20,8 +20,7 @@ import { useGET } from '../../hooks/useGET';
 import { getToken } from '../../utils/auth';
 import { esES } from '@mui/x-data-grid/locales';
 import ApprovedPay from './approved-pay';
-import AddIcon from '@mui/icons-material/Add';
-import RequestStamps from './request_stamps';
+import { Stack } from '@mui/joy';
 
 
 export default function OnlineStampsTable() {
@@ -30,7 +29,6 @@ export default function OnlineStampsTable() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalOpenApproved, setIsModalOpenApproved] = useState(false);
-    const [isModalOpenRequest, setIsModalOpenRequest] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [data, loading, error] = useGET(`ventas/online?token=${token}`);
 
@@ -41,24 +39,6 @@ export default function OnlineStampsTable() {
     useEffect(() => {
         setSearchParams({ p: page + 1 });
     }, [page, setSearchParams]);
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <CircularProgress />
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                    Ocurrió un error al cargar los datos. Si el error persiste, contáctese con la administración.
-                </table>
-            </div>
-        );
-    }
 
     const columns = [
         {
@@ -113,7 +93,7 @@ export default function OnlineStampsTable() {
                 }
 
                 if (isPendiente) {
-                    const { id_venta, cantidad, precio } = params.row.detalle[0];
+                    const { id_venta, cantidad, precio, tipo_valor } = params.row.detalle[0];
                     return (
                         <Chip
                             icon={<ShoppingCartIcon />}
@@ -124,7 +104,7 @@ export default function OnlineStampsTable() {
                             variant="outlined"
                             onClick={(event) => {
                                 event.stopPropagation(); // evita que se dispare el onRowClick
-                                navigate(`/checkout_stamps?s=1&i=${id_venta}&c=${cantidad}&p=${precio}`);
+                                navigate(`/checkout_stamps?s=1&i=${id_venta}&c=${cantidad}&p=${precio}&t=${tipo_valor}`);
                             }}
 
                             sx={{
@@ -158,40 +138,19 @@ export default function OnlineStampsTable() {
             headerName: 'Total de estampillas',
             flex: 1,
             renderCell: (params) => {
-                const { estampillas, estampillas_detalle = [], detalle } = params.row;
-                const sinEstampillas = estampillas_detalle.length === 0;
-
-                if (sinEstampillas) {
-                    return (
-                        <Chip
-                            icon={<AddIcon />}
-                            label="Solicitar estampillas"
-                            color="warning"
-                            size="small"
-                            variant="outlined"
-                            onClick={(event) => {
-                                event.stopPropagation(); // evita que se dispare el onRowClick
-                                setSelectedAppointment(params.row);
-                                setIsModalOpenRequest(true);
-                            }}
-                            sx={{
-                                fontWeight: 500,
-                                borderRadius: "8px",
-                                pl: "4px",
-                            }}
-                        />
-                    );
-                }
+                const { estampillas } = params.row;
 
                 return (
                     <Chip
-                        label={`${estampillas_detalle.length}/${estampillas}`}
+                        label={`0/${estampillas}`}
                         color="success"
                         size="small"
+                        clickable
                         variant="outlined"
                         sx={{
                             fontWeight: 500,
                             borderRadius: "8px",
+                            '& .MuiChip-icon': { color: "green" } // tono ámbar
                         }}
                     />
                 );
@@ -202,29 +161,80 @@ export default function OnlineStampsTable() {
 
 
     return (
-        <Box sx={{ height: '100%', width: '100%' }}>
-            <DataGrid
-                rows={data}
-                columns={columns}
-                initialState={{
-                    pagination: {
-                        paginationModel: { pageSize: 8, page },
+        <Box
+            sx={{
+                width: "100%",
+                mx: "auto",
+                minHeight: "calc(100vh - 150px)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+            }}
+        >
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    height: 420,
+                    backgroundColor: "#fff",
+                    borderRadius: 2,
+                    position: "relative",
+                    "& .MuiDataGrid-cell": { fontSize: 13 },
+                    "& .MuiDataGrid-columnHeaders": {
+                        fontWeight: "bold",
+                        fontSize: 13,
                     },
                 }}
-                page={page}
-                onPaginationModelChange={(model) => {
-                    setPage(model.page);
-                }}
-                pageSizeOptions={[8, 25]}
-                disableRowSelectionOnClick
-                showToolbar
-                onRowClick={(params) => {
-                    setSelectedAppointment(params.row);
-                    setIsModalOpen(true);
-                }}
-                localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+            >
+                {loading ? (
+                    <Stack
+                        alignItems="center"
+                        justifyContent="center"
+                        sx={{
+                            height: "100%",
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 10,
+                            backgroundColor: "rgba(255,255,255,0.7)",
+                        }}
+                    >
+                        <CircularProgress />
+                    </Stack>
+                ) : error ? (
+                    <Typography
+                        variant="body2"
+                        color="error"
+                        sx={{ textAlign: "center", pt: 4 }}
+                    >
+                        Ocurrió un error al cargar los datos.
+                    </Typography>
+                ) : (
+                    <DataGrid
+                        rows={data}
+                        columns={columns}
+                        initialState={{
+                            pagination: {
+                                paginationModel: { pageSize: 8, page },
+                            },
+                        }}
+                        page={page}
+                        onPaginationModelChange={(model) => {
+                            setPage(model.page);
+                        }}
+                        pageSizeOptions={[8, 25]}
+                        disableRowSelectionOnClick
+                        showToolbar
+                        onRowClick={(params) => {
+                            setSelectedAppointment(params.row);
+                            setIsModalOpen(true);
+                        }}
+                        localeText={esES.components.MuiDataGrid.defaultProps.localeText}
 
-            />
+                    />
+                )}
+            </Box>
 
             <OnlineDetails
                 isOpen={isModalOpen}
@@ -235,12 +245,6 @@ export default function OnlineStampsTable() {
             <ApprovedPay
                 isOpen={isModalOpenApproved}
                 onClose={() => setIsModalOpenApproved(false)}
-                data={selectedAppointment}
-            />
-
-            <RequestStamps
-                isOpen={isModalOpenRequest}
-                onClose={() => setIsModalOpenRequest(false)}
                 data={selectedAppointment}
             />
 

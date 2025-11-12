@@ -122,30 +122,6 @@ export default function ApprovedPay({ isOpen, onClose, data }) {
                             </Typography>
                         </Stack>
                         <Typography variant="body2">ID de pago: {jsonPago?.id}</Typography>
-                        <Typography variant="body2">
-                            Ticket: {transaction?.auth_data?.ticket?.number}
-                        </Typography>
-                        <Typography variant="body2">
-                            Autorización: {transaction?.auth_data?.auth_id}
-                        </Typography>
-                    </CardContent>
-                </Card>
-                
-                <Card variant="outlined">
-                    <CardContent>
-                        <Stack direction="row" alignItems="center" spacing={1} mb={1}>
-                            <ReceiptLongIcon color="primary" />
-                            <Typography variant="subtitle1" fontWeight={600}>
-                                Transacción
-                            </Typography>
-                        </Stack>
-                        <Typography variant="body2">ID de pago: {jsonPago?.id}</Typography>
-                        <Typography variant="body2">
-                            Ticket: {transaction?.auth_data?.ticket?.number}
-                        </Typography>
-                        <Typography variant="body2">
-                            Autorización: {transaction?.auth_data?.auth_id}
-                        </Typography>
                     </CardContent>
                 </Card>
             </DialogContent>

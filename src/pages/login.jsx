@@ -10,35 +10,19 @@ import { useGET } from "../hooks/useGET";
 import { toast } from "sonner";
 
 
+const baseURL = import.meta.env.VITE_API_URL;
+
 export default function Login() {
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors } } = useForm();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    // const { post, loading, error } = usePost();
-    // cada vez que cambie `routine` del hook, la guardamos en el context
-    // const onSubmit = async (data) => {
-    //     const userCredentials = {
-    //         user: data.user,
-    //         password: data.password
-    //     };
-    //     navigate('/online_stamps');
-
-        // const response = await post('login', userCredentials);
-
-        // if (response && response.token) {
-        //     setToken(response.token);
-        //     const decoded = jwtDecode(response.token);
-        //     if (decoded.data.role === "admin") {
-        //         navigate('/admin/dashboard');
-        //     }
-        // }
-    // };
+    
     const onSubmit = async (data) => {
         try {
             setLoading(true);
             // no uso el hook de useGET porq en este no me sirve y no vale la pena armar otro solo para login
-            const tokenResponse = await axios.get(`https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/login/estampilla_online?u=${data.user}`);
+            const tokenResponse = await axios.get(`${baseURL}login/estampilla_online?u=${data.user}`);
 
             const token = tokenResponse.data.token;
             if (!token) {
@@ -46,7 +30,7 @@ export default function Login() {
             }
 
             const loginResponse = await axios.post(
-                `https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/login/estampilla_online`,
+                `${baseURL}login/estampilla_online`,
                 {
                     t: token,
                     ss: data.password,

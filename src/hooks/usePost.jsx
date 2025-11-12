@@ -3,7 +3,8 @@ import axios from 'axios';
 import { toast } from 'sonner';
 
 // const baseURL = import.meta.env.VITE_API_URL;
-const baseURL = "https://circulokinesiologossursantafe.com/estampillas/circulo_estampillas_be/api/";
+const baseURL = import.meta.env.VITE_API_URL;
+
 
 export function usePost() {
     const [loading, setLoading] = useState(false);

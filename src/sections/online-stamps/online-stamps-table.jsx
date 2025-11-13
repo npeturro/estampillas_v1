@@ -14,6 +14,7 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useState, useEffect } from 'react';
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AddIcon from "@mui/icons-material/Add";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import OnlineDetails from './online-details';
 import { useGET } from '../../hooks/useGET';
@@ -138,22 +139,51 @@ export default function OnlineStampsTable() {
             headerName: 'Total de estampillas',
             flex: 1,
             renderCell: (params) => {
-                const { estampillas } = params.row;
+                const { estampillas, estampillas_detalle = [], detalles_pago = [] } = params.row;
+                const { id_venta, cantidad, precio, tipo_valor } = params.row.detalle[0]
+                const estado = detalles_pago[0]?.estado ? JSON.parse(detalles_pago[0].estado) : null;
+                const APPROVED = estado?.name === "APPROVED";
 
-                return (
-                    <Chip
-                        label={`0/${estampillas}`}
-                        color="success"
-                        size="small"
-                        clickable
-                        variant="outlined"
-                        sx={{
-                            fontWeight: 500,
-                            borderRadius: "8px",
-                            '& .MuiChip-icon': { color: "green" } // tono ámbar
-                        }}
-                    />
-                );
+                if (estampillas_detalle.length > 0) {
+                    return (
+                        <Chip
+                            label={`0/${estampillas}`}
+                            color="success"
+                            size="small"
+                            clickable
+                            variant="outlined"
+                            sx={{
+                                fontWeight: 500,
+                                borderRadius: "8px",
+                                "& .MuiChip-icon": { color: "green" },
+                            }}
+                        />
+                    );
+                }
+
+                if (estampillas_detalle.length === 0 && APPROVED) {
+                    return (
+                        <Chip
+                            icon={<AddIcon />}
+                            label="Solicitar estampillas"
+                            color="warning"
+                            size="small"
+                            clickable
+                            variant="outlined"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                navigate(`/checkout_stamps?s=2&i=${id_venta}&c=${cantidad}&t=${tipo_valor}`);
+                            }}
+                            sx={{
+                                fontWeight: 500,
+                                borderRadius: "8px",
+                                pl: "4px",
+                                "& .MuiChip-icon": { color: "#f59e0b" },
+                            }}
+                        />
+                    );
+                }
+
             }
         }
 

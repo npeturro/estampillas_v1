@@ -23,6 +23,8 @@ import { getToken, getUser } from "../utils/auth";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { toast } from "sonner";
 
 
 export default function CheckoutStamps() {
@@ -30,7 +32,7 @@ export default function CheckoutStamps() {
     const navigate = useNavigate();
     const token = getToken();
     const user = getUser();
-    const [price, loadingp, error] = useGET('estampillas_online/precio');
+    const [price, loadingp, error] = useGET(`estampillas_online/precio?token=${token}`);
     const stepFromUrl = parseInt(searchParams.get("s")) || 0;
     const tipoFromUrl = searchParams.get("t") || "";
     const cantidadFromUrl = parseInt(searchParams.get("c")) || 1;
@@ -44,7 +46,7 @@ export default function CheckoutStamps() {
     const [data, loadingPago, errorPago] = useGET(
         idFromUrl ? `pagos_online/nave?token=${token}&id_venta=${idFromUrl}` : null
     );
-
+    const [loadingStamps, setLoadingStamps] = useState(false);
 
     const detalles = data[0]?.detalle?.[0];
     const estado = detalles?.estado ? JSON.parse(detalles.estado) : null;
@@ -52,7 +54,7 @@ export default function CheckoutStamps() {
     const aprobado = estado?.name === "APPROVED";
 
     const { post, loading, errorPost } = usePost();
-    const steps = ["Cantidad", "Pago", "Solicitar estampillas"];
+    const steps = ["Cantidad", "Pago", "Estampillas"];
 
     useEffect(() => {
         if (!precioFromUrl && price?.TiposValores?.length > 0) {
@@ -139,8 +141,32 @@ export default function CheckoutStamps() {
             console.error("Error al crear el pago NAVE:", err);
         }
     };
+
     const handleStamps = async () => {
-        const total = precioUnitario * cantidad;
+        setLoadingStamps(true);
+        const sendData = {
+            id_venta: idFromUrl,
+            usuario: user.usuario,
+            nro_ospac: user.nro_ospac,
+            nro_ficha: user.usuario, //es identificacion del paciente que no tengo
+            tipo_valor: tipoValor,
+            cantidad: cantidad,
+            token
+        }
+
+        try {
+            const response = await post("estampillas_online/estampillas_online", sendData);
+            if (response) {
+                toast.success("¡Estampillas solicitadas con éxito! Serás redirigido al inicio");
+                setTimeout(() => navigate("/online_stamps"), 1500);
+            }
+
+        } catch (err) {
+            // toast.error("Ha ocurrido un error al intentar solicitar las estampillas. Reintenlo nuevamente y si el error persiste contactese con la administración.")
+            console.error("Error:", err);
+        } finally {
+            setLoadingStamps(false);
+        }
 
     };
 
@@ -367,7 +393,6 @@ export default function CheckoutStamps() {
 
                     )}
 
-
                     {activeStep === 1 && (
                         <motion.div
                             key="step3"
@@ -481,9 +506,7 @@ export default function CheckoutStamps() {
                         </motion.div>
                     )}
 
-
                     {activeStep === 2 && (
-
                         <motion.div
                             key="step3"
                             initial={{ opacity: 0, y: 15 }}
@@ -492,62 +515,87 @@ export default function CheckoutStamps() {
                             transition={{ duration: 0.35 }}
                             className="flex flex-col gap-4"
                         >
+                            {loadingPago ? (
+                                <CircularProgress size={24} />
+                            ) : estado ? (
+                                <Box
+                                    sx={{
+                                        width: "100%",
+                                        p: 3,
+                                        borderRadius: 3,
+                                        backgroundColor: "#f9fafb",
+                                        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        gap: 1,
+                                    }}
+                                >
+                                    <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
+                                        <Chip
+                                            icon={aprobado ? <CheckCircleIcon /> : <CancelIcon />}
+                                            label={aprobado ? "Pago aprobado" : estado?.name || "Desconocido"}
+                                            color={aprobado ? "success" : "error"}
+                                            sx={{ fontWeight: 600, px: 1.5, py: 0.5 }}
+                                        />
+                                        <Typography variant="body2" color="text.secondary">
+                                            {new Date(data[0]?.fecha).toLocaleString("es-AR")}
+                                        </Typography>
+                                    </Stack>
 
-                            <Box
-                                sx={{
-                                    width: "100%",
-                                    p: 3,
-                                    borderRadius: 3,
-                                    backgroundColor: "#f9fafb",
-                                    boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    gap: 1,
-                                }}
-                            >
-                                <Stack alignItems="center" spacing={1} sx={{ mb: 3 }}>
-                                    <Chip
-                                        icon={aprobado ? <CheckCircleIcon /> : <CancelIcon />}
-                                        label={aprobado ? "Pago aprobado" : estado?.name || "Desconocido"}
-                                        color={aprobado ? "success" : "error"}
-                                        sx={{ fontWeight: 600, px: 1.5, py: 0.5 }}
-                                    />
-                                    <Typography variant="body2" color="text.secondary">
-                                        {new Date(data[0]?.fecha).toLocaleString("es-AR")}
-                                    </Typography>
-                                </Stack>
-                                <Card variant="outlined">
-                                    <CardContent>
-                                        <Stack direction="row" alignItems="center" spacing={1} mb={1}>
-                                            <ReceiptLongIcon color="primary" />
-                                            <Typography variant="subtitle1" fontWeight={600}>
-                                                Resumen del pago
+                                    <Card variant="outlined">
+                                        <CardContent>
+                                            <Stack direction="row" alignItems="center" spacing={1} mb={1}>
+                                                <ReceiptLongIcon color="primary" />
+                                                <Typography variant="subtitle1" fontWeight={600}>
+                                                    Resumen del pago
+                                                </Typography>
+                                            </Stack>
+                                            <Typography variant="body2">
+                                                ID de pago: {transaction?.id}
                                             </Typography>
-                                        </Stack>
-                                        <Typography variant="body2">ID de pago: {transaction?.id}</Typography>
-                                        <Typography variant="body2">Monto: <strong>${transaction.transactions[0]?.amount?.value || "—"}</strong></Typography>
+                                            <Typography variant="body2">
+                                                Monto: <strong>${transaction?.transactions[0]?.amount?.value || "—"}</strong>
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
 
-                                    </CardContent>
-                                </Card>
+                                    {aprobado && (
+                                        <Button
+                                            onClick={handleStamps}
+                                            variant="contained"
+                                            color="success"
+                                            disabled={loadingStamps}
+                                            startIcon={!loadingStamps && <AddCircleOutlineIcon />}
+                                            sx={{
+                                                mt: 2,
+                                                px: 3,
+                                                py: 1,
+                                                borderRadius: "50px",
+                                                fontWeight: 700,
+                                                letterSpacing: 0.5,
+                                                textTransform: "none",
+                                                boxShadow: "0 3px 8px rgba(0, 128, 0, 0.25)",
+                                                transition: "all 0.25s ease",
+                                                "&:hover": {
+                                                    boxShadow: "0 4px 12px rgba(0, 128, 0, 0.35)",
+                                                    transform: "translateY(-1px)"
+                                                },
+                                            }}
+                                        >
+                                            {loadingStamps ? (
+                                                <CircularProgress size={22} sx={{ color: "white" }} />
+                                            ) : (
+                                                "Solicitar estampillas"
+                                            )}
+                                        </Button>
 
-                            </Box>
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontWeight: 700,
-                                    color: "#1e293b",
-                                    textAlign: "center",
-                                    mb: 1,
-                                }}
-                            >
-                                Solicitar estampillas
-                            </Typography>
-
-
-
+                                    )}
+                                </Box>
+                            ) : null}
                         </motion.div>
                     )}
+
 
                 </AnimatePresence>
             </Box>

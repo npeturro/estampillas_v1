@@ -1,64 +1,98 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     Dialog,
     DialogTitle,
     DialogContent,
     IconButton,
-    TextField,
     Typography,
     LinearProgress,
     Box,
-    FormControlLabel,
-    Checkbox,
     Grid,
     DialogActions,
     Button,
+    Menu,
+    MenuItem,
     DialogContentText,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { getToken } from "../../utils/auth";
 
 export default function OnlineDetails({ isOpen, onClose, data }) {
-    const [selected, setSelected] = useState([]);
-    const [search, setSearch] = useState("");
-    const [openConfirm, setOpenConfirm] = useState(false);
+    const [stamps, setStamps] = useState([]);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [selectedStamp, setSelectedStamp] = useState(null);
     const [isDirty, setIsDirty] = useState(false);
-
-    const totalStamps = data?.estampillas || 0;
-    const usedStamps = data?.estampillas_detalle || 0;
-
-    const stampsList = useMemo(
-        () =>
-            Array.from({ length: totalStamps }, (_, i) => ({
-                id: i + 1,
-                name: `#${i + 1}`,
-            })),
-        [totalStamps]
-    );
-
-    const filteredList = stampsList.filter((item) =>
-        item.name.toLowerCase().includes(search.toLowerCase())
-    );
+    const [openConfirm, setOpenConfirm] = useState(false);
+    const token = getToken();
 
     useEffect(() => {
-        if (isOpen) {
-            setSelected(data?.used_stamps_ids || []);
+        if (isOpen && data?.estampillas_detalle) {
+            const parsed = data.estampillas_detalle.map((e) => {
+                const info = JSON.parse(e.json_estampilla);
+                return {
+                    id: e.id,
+                    id_venta: e.id_venta,
+                    nro_estampilla: e.nro_estampilla,
+                    usada: e.usada === "1",
+                    NumeroEstampilla: info.NumeroEstampilla,
+                    URLQR: info.URLQR,
+                };
+            });
+            setStamps(parsed);
             setIsDirty(false);
         }
     }, [isOpen, data]);
 
+    const totalStamps = stamps.length;
+    const usedStamps = stamps.filter((s) => s.usada).length;
 
-    const handleSelect = (id) => {
-        setSelected((prev) => {
-            const newSelected = prev.includes(id)
-                ? prev.filter((x) => x !== id)
-                : [...prev, id];
-            console.log("Seleccionadas:", newSelected);
-            setIsDirty(true);
-            return newSelected;
-        });
+    const handleMenuOpen = (event, stamp) => {
+        event.stopPropagation();
+        setAnchorEl(event.currentTarget);
+        setSelectedStamp(stamp);
     };
 
-    const handleClose = () => {
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+        setSelectedStamp(null);
+    };
+
+    const handleUnmark = () => {
+        if (selectedStamp) {
+            setStamps((prev) =>
+                prev.map((s) =>
+                    s.id === selectedStamp.id ? { ...s, usada: false } : s
+                )
+            );
+            setIsDirty(true);
+        }
+        handleMenuClose();
+    };
+
+    const handleSelect = (id) => {
+        setStamps((prev) =>
+            prev.map((s) =>
+                s.id === id ? { ...s, usada: !s.usada } : s
+            )
+        );
+        setIsDirty(true);
+    };
+
+    const handleSubmit = () => {
+        const params = stamps.map((s) => ({
+            id_venta: s.id_venta,
+            nro_estampilla: s.nro_estampilla,
+            usada: s.usada ? "1" : "0",
+            token,
+        }));
+
+        console.log(params);
+        setIsDirty(false);
+        onClose();
+    };
+
+    const handleAttemptClose = () => {
         if (isDirty) {
             setOpenConfirm(true);
         } else {
@@ -72,20 +106,14 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
         onClose();
     };
 
-    const handleSubmit = () => {
-        console.log("Guardado:", selected);
-        setIsDirty(false);
-        onClose();
-    };
-
     if (!data) return null;
 
     return (
         <>
-            <Dialog open={isOpen} onClose={handleClose} maxWidth="sm" fullWidth>
+            <Dialog open={isOpen} onClose={handleAttemptClose} maxWidth="sm" fullWidth>
                 <DialogTitle className="flex justify-between items-center text-black font-semibold text-lg">
                     <span>Detalle de estampillas #{data.id}</span>
-                    <IconButton onClick={handleClose}>
+                    <IconButton onClick={handleAttemptClose}>
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
@@ -93,7 +121,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                 <DialogContent className="bg-gray-50 space-y-4">
                     <Box className="w-full">
                         <Typography variant="subtitle2" className="text-gray-700 mb-1">
-                            Estampillas usadas: 0 / {totalStamps}
+                            Estampillas usadas: {usedStamps} / {totalStamps}
                         </Typography>
                         <LinearProgress
                             variant="determinate"
@@ -110,58 +138,74 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                     </Box>
 
                     <Grid container spacing={1}>
-                        {filteredList.map((item) => {
-                            const isSelected = selected.includes(item.id);
-                            return (
-                                <Grid item xs={12} sm={6} key={item.id}>
-                                    <Box
-                                        onClick={() => handleSelect(item.id)}
+                        {stamps.map((item) => (
+                            <Grid item xs={12} sm={6} key={item.id}>
+                                <Box
+                                    sx={{
+                                        position: "relative",
+                                        cursor: item.usada ? "default" : "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 1,
+                                        p: 1,
+                                        borderRadius: 2,
+                                        border: "1px solid #e5e7eb",
+                                        backgroundColor: item.usada ? "#f3f4f6" : "#fff",
+                                        opacity: item.usada ? 0.7 : 1,
+                                        transition:
+                                            "background-color 0.2s ease, border-color 0.2s ease",
+                                        "&:hover": {
+                                            backgroundColor: item.usada
+                                                ? "#f3f4f6"
+                                                : "#f9fafb",
+                                        },
+                                    }}
+                                    onClick={() => {
+                                        if (!item.usada) handleSelect(item.id);
+                                    }}
+                                >
+                                    <img
+                                        src={"src/assets/estampilla_0.png"}
+                                        alt="Estampilla"
+                                        style={{
+                                            width: 70,
+                                            height: 70,
+                                            objectFit: "contain",
+                                            borderRadius: 4,
+                                        }}
+                                    />
+                                    <Typography
+                                        variant="body2"
+                                        className="text-gray-700"
                                         sx={{
-                                            cursor: "pointer",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 1,
-                                            p: 1,
-                                            borderRadius: 2,
-                                            border: "1px solid #e5e7eb",
-                                            backgroundColor: isSelected ? "#fff8e1" : "#fff", // fondo clarito cuando está seleccionado
-                                            transition: "background-color 0.2s ease, border-color 0.2s ease",
-                                            "&:hover": {
-                                                backgroundColor: isSelected ? "#fff3cd" : "#f9fafb",
-                                            },
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            fontSize: "0.7rem",
+                                            fontWeight: item.usada ? 400 : 600,
                                         }}
                                     >
-                                        <img
-                                            src={"src/assets/estampilla_0.png"}
-                                            alt="Estampilla"
-                                            style={{
-                                                width: 70,
-                                                height: 70,
-                                                objectFit: "contain",
-                                                borderRadius: 4,
-                                            }}
-                                        />
-                                        <Typography
-                                            variant="body2"
-                                            className="text-gray-700"
+                                        {item.NumeroEstampilla}
+                                    </Typography>
+
+                                    {item.usada && (
+                                        <IconButton
+                                            size="small"
+                                            onClick={(e) => handleMenuOpen(e, item)}
                                             sx={{
-                                                whiteSpace: "nowrap",
-                                                overflow: "hidden",
-                                                textOverflow: "ellipsis",
-                                                fontSize: "0.9rem",
-                                                fontWeight: isSelected ? 600 : 400,
+                                                position: "absolute",
+                                                top: 4,
+                                                right: 4,
                                             }}
                                         >
-                                            {item.name}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-                            );
-                        })}
+                                            <MoreVertIcon fontSize="small" />
+                                        </IconButton>
+                                    )}
+                                </Box>
+                            </Grid>
+                        ))}
                     </Grid>
                 </DialogContent>
-
-
 
                 <DialogActions>
                     <Button
@@ -179,7 +223,20 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                 </DialogActions>
             </Dialog>
 
-            <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)} maxWidth="xs" fullWidth>
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+            >
+                <MenuItem onClick={handleUnmark}>Destildar estampilla</MenuItem>
+            </Menu>
+
+            <Dialog
+                open={openConfirm}
+                onClose={() => setOpenConfirm(false)}
+                maxWidth="xs"
+                fullWidth
+            >
                 <DialogTitle className="font-semibold text-gray-800">
                     Cambios sin guardar
                 </DialogTitle>
@@ -189,14 +246,18 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenConfirm(false)}
+                    <Button
+                        onClick={() => setOpenConfirm(false)}
                         variant="outlined"
                         size="small"
                         sx={{
                             borderRadius: "8px",
                             textTransform: "none",
                             fontWeight: 500,
-                        }}>Cancelar</Button>
+                        }}
+                    >
+                        Cancelar
+                    </Button>
                     <Button
                         color="warning"
                         onClick={handleConfirmClose}

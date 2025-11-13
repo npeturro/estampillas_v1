@@ -151,6 +151,10 @@ export default function OnlineStampsTable() {
                             color="success"
                             size="small"
                             clickable
+                            onClick={(event) => {
+                                setSelectedAppointment(params.row);
+                                setIsModalOpen(true);
+                            }}
                             variant="outlined"
                             sx={{
                                 fontWeight: 500,
@@ -256,10 +260,10 @@ export default function OnlineStampsTable() {
                         pageSizeOptions={[8, 25]}
                         disableRowSelectionOnClick
                         showToolbar
-                        onRowClick={(params) => {
-                            setSelectedAppointment(params.row);
-                            setIsModalOpen(true);
-                        }}
+                        // onRowClick={(params) => {
+                        //     setSelectedAppointment(params.row);
+                        //     setIsModalOpen(true);
+                        // }}
                         localeText={esES.components.MuiDataGrid.defaultProps.localeText}
 
                     />

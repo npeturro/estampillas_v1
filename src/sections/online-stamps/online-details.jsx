@@ -17,6 +17,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getToken } from "../../utils/auth";
+import { usePost } from "../../hooks/usePost";
 
 export default function OnlineDetails({ isOpen, onClose, data }) {
     const [stamps, setStamps] = useState([]);
@@ -25,6 +26,10 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
     const [isDirty, setIsDirty] = useState(false);
     const [openConfirm, setOpenConfirm] = useState(false);
     const token = getToken();
+    const [unMarkStamp, setUnMarkStamp] = useState(false);
+    const [openUnmarkConfirm, setOpenUnmarkConfirm] = useState(false);
+    const { post, loading, errorPost } = usePost();
+
 
     useEffect(() => {
         if (isOpen && data?.estampillas_detalle) {
@@ -66,6 +71,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                 )
             );
             setIsDirty(true);
+            setUnMarkStamp(true);
         }
         handleMenuClose();
     };
@@ -78,8 +84,21 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
         );
         setIsDirty(true);
     };
-
     const handleSubmit = () => {
+        //si no hubo cambios no hago nada
+        if (!isDirty) return;
+
+        // si se destildo una usada primero confirmo
+        if (unMarkStamp) {
+            setOpenUnmarkConfirm(true);
+            return;
+        }
+
+        // no hay destildadas, lo envio
+        sendData();
+    };
+
+    const sendData = async () => {
         const params = stamps.map((s) => ({
             id_venta: s.id_venta,
             nro_estampilla: s.nro_estampilla,
@@ -88,10 +107,11 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
         }));
 
         console.log(params);
+        response = await post(`estampillas_online/estampillas_online`, params, "PUT");
         setIsDirty(false);
+        setUnMarkStamp(false);
         onClose();
     };
-
     const handleAttemptClose = () => {
         if (isDirty) {
             setOpenConfirm(true);
@@ -111,7 +131,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
     return (
         <>
             <Dialog open={isOpen} onClose={handleAttemptClose} maxWidth="sm" fullWidth>
-                <DialogTitle className="flex justify-between items-center text-black font-semibold text-lg">
+                <DialogTitle className="flex justify-between items-center text-black">
                     <span>Detalle de estampillas #{data.id}</span>
                     <IconButton onClick={handleAttemptClose}>
                         <CloseIcon />
@@ -212,13 +232,15 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                         onClick={handleSubmit}
                         variant="outlined"
                         size="small"
+                        disabled={!isDirty || loading}
                         sx={{
                             borderRadius: "8px",
                             textTransform: "none",
                             fontWeight: 500,
+                            opacity: !isDirty ? 0.6 : 1,
                         }}
                     >
-                        Guardar
+                        {loading ? "Guardando.." : "Guardar"}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -273,6 +295,52 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <Dialog
+                open={openUnmarkConfirm}
+                onClose={() => setOpenUnmarkConfirm(false)}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogContent>
+                    <DialogContentText className="text-gray-700">
+                        Estás por destildar una estampilla que estaba marcada como usada.
+                        ¿Querés continuar?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => setOpenUnmarkConfirm(false)}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                            borderRadius: "8px",
+                            textTransform: "none",
+                            fontWeight: 500,
+                        }}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        color="warning"
+                        onClick={() => {
+                            setOpenUnmarkConfirm(false);
+                            sendData();
+                        }}
+                        variant="outlined"
+                        size="small"
+                        disabled={loading}
+                        sx={{
+                            borderRadius: "8px",
+                            textTransform: "none",
+                            fontWeight: 500,
+                        }}
+                    >
+                        {loading ? "Guardando.." : "Guardar"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
         </>
     );
 }

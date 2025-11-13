@@ -66,9 +66,9 @@ export default function ApprovedPay({ isOpen, onClose, data }) {
                     zIndex: 10,
                 }}
             >
-                <Typography variant="h6" fontWeight={700} fontSize="1.1rem">
-                    Detalles del pago
-                </Typography>
+
+                Detalles del pago
+
                 <IconButton onClick={onClose}>
                     <CloseIcon />
                 </IconButton>

@@ -18,8 +18,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getToken } from "../../utils/auth";
 import { usePost } from "../../hooks/usePost";
+import { toast } from "sonner";
 
-export default function OnlineDetails({ isOpen, onClose, data }) {
+export default function OnlineDetails({ isOpen, onClose, data, fetchData }) {
     const [stamps, setStamps] = useState([]);
     const [anchorEl, setAnchorEl] = useState(null);
     const [selectedStamp, setSelectedStamp] = useState(null);
@@ -29,6 +30,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
     const [unMarkStamp, setUnMarkStamp] = useState(false);
     const [openUnmarkConfirm, setOpenUnmarkConfirm] = useState(false);
     const { post, loading, errorPost } = usePost();
+    const [loadingInterno, setLoadingInterno] = useState(false)
 
 
     useEffect(() => {
@@ -99,18 +101,27 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
     };
 
     const sendData = async () => {
+        setLoadingInterno(true);
         const params = stamps.map((s) => ({
             id_venta: s.id_venta,
             nro_estampilla: s.nro_estampilla,
             usada: s.usada ? "1" : "0",
-            token,
         }));
 
-        console.log(params);
-        response = await post(`estampillas_online/estampillas_online`, params, "PUT");
-        setIsDirty(false);
-        setUnMarkStamp(false);
-        onClose();
+        const sendDataForm = {
+            token,
+            e: params
+        }
+
+        const response = await post(`estampillas_online/estampillas_online`, sendDataForm, "PUT");
+        if (response && response == "OK") {
+            await fetchData(false);
+            setIsDirty(false);
+            setUnMarkStamp(false);
+            onClose();
+            toast.success("Estampillas modificadas con éxito!")
+        }
+        setLoadingInterno(false);
     };
     const handleAttemptClose = () => {
         if (isDirty) {
@@ -232,7 +243,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                         onClick={handleSubmit}
                         variant="outlined"
                         size="small"
-                        disabled={!isDirty || loading}
+                        disabled={!isDirty || loading || loadingInterno}
                         sx={{
                             borderRadius: "8px",
                             textTransform: "none",
@@ -240,7 +251,7 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                             opacity: !isDirty ? 0.6 : 1,
                         }}
                     >
-                        {loading ? "Guardando.." : "Guardar"}
+                        {(loading || loadingInterno) ? "Guardando.." : "Guardar"}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -329,14 +340,14 @@ export default function OnlineDetails({ isOpen, onClose, data }) {
                         }}
                         variant="outlined"
                         size="small"
-                        disabled={loading}
+                        disabled={loading || loadingInterno}
                         sx={{
                             borderRadius: "8px",
                             textTransform: "none",
                             fontWeight: 500,
                         }}
                     >
-                        {loading ? "Guardando.." : "Guardar"}
+                        {(loading || loadingInterno) ? "Guardando.." : "Guardar"}
                     </Button>
                 </DialogActions>
             </Dialog>

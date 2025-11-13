@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { getToken, removeToken } from "../utils/auth";
@@ -12,28 +12,25 @@ export const useGET = (consult) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!consult) return;
-
-    let isMounted = true; 
-
-    const fetchData = async () => {
-      setLoading(true);
+  // función reutilizable para volver a consultar
+  const fetchData = useCallback(
+    async (showLoading = true) => {
+      if (!consult) return;
+      if (showLoading) setLoading(true);
       setError(null);
 
       const token = getToken();
-      // const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       try {
-        const response = await axios.get(`${baseURL}${consult}`);
-        // const response = await axios.get(`${baseURL}${consult}`, { headers });
+        const response = await axios.get(`${baseURL}${consult}`, {
+          // headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
 
         if (response.status < 200 || response.status >= 300) {
           throw new Error("Error en la red: " + response.statusText);
         }
 
-        if (isMounted) setData(response.data);
-
+        setData(response.data);
       } catch (err) {
         if (err.response && [401, 403].includes(err.response.status)) {
           removeToken();
@@ -41,20 +38,19 @@ export const useGET = (consult) => {
           return;
         }
 
-        if (isMounted) setError(err);
+        setError(err);
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
-    };
+    },
+    [consult, navigate]
+  );
 
-    fetchData();
+  useEffect(() => {
+    fetchData(true);
+  }, [fetchData]);
 
-    return () => {
-      isMounted = false; 
-    };
-  }, [consult, navigate]);
-
-  return [data, loading, error];
+  return [data, loading, error, fetchData];
 };
 
 useGET.propTypes = {

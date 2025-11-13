@@ -8,7 +8,8 @@ import {
     DialogContent,
     TextField,
     Switch,
-    Chip
+    Chip,
+    Typography
 } from '@mui/material';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useState, useEffect } from 'react';
@@ -31,7 +32,7 @@ export default function OnlineStampsTable() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalOpenApproved, setIsModalOpenApproved] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
-    const [data, loading, error] = useGET(`ventas/online?token=${token}`);
+    const [data, loading, error, fetchData] = useGET(`ventas/online?token=${token}`);
 
     const initialPage = parseInt(searchParams.get("p") || "1", 10) - 1;
     const [page, setPage] = useState(initialPage);
@@ -143,11 +144,12 @@ export default function OnlineStampsTable() {
                 const { id_venta, cantidad, precio, tipo_valor } = params.row.detalle[0]
                 const estado = detalles_pago[0]?.estado ? JSON.parse(detalles_pago[0].estado) : null;
                 const APPROVED = estado?.name === "APPROVED";
+                const used = estampillas_detalle.filter((s) => s.usada === "1").length;
 
                 if (estampillas_detalle.length > 0) {
                     return (
                         <Chip
-                            label={`0/${estampillas}`}
+                            label={`${used}/${estampillas}`}
                             color="success"
                             size="small"
                             clickable
@@ -274,6 +276,8 @@ export default function OnlineStampsTable() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 data={selectedAppointment}
+                fetchData={fetchData}
+                loadingExterno={loading}
             />
 
             <ApprovedPay

@@ -82,15 +82,17 @@ export default function PhysicalSalesGrid() {
             field: "fecha_creacion",
             headerName: "Fecha",
             flex: 1,
-            renderCell: (params) =>
-                new Date(params.row.fecha_creacion).toLocaleDateString("es-AR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                }),
+            renderCell: (params) => {
+                const d = new Date(params.row.fecha_creacion);
+
+                const dia = String(d.getDate()).padStart(2, "0");
+                const mes = String(d.getMonth() + 1).padStart(2, "0");
+                const año = d.getFullYear();
+                const hora = String(d.getHours()).padStart(2, "0");
+                const min = String(d.getMinutes()).padStart(2, "0");
+
+                return `${dia}/${mes}/${año} ${hora}:${min}`;
+            }
         },
         {
             field: "nombre",

@@ -20,7 +20,7 @@ export default function TopNav() {
     const user = getUser();
 
     const sections = [
-        { id: "sales", label: "Estampillas online", path: "/online_stamps" },
+        { id: "sales", label: "Estampillas digitales", path: "/online_stamps" },
         { id: "finals", label: "Estampillas físicas", path: "/physical_stamps" },
     ];
 
@@ -36,10 +36,11 @@ export default function TopNav() {
                         objectFit: "contain"
                     }}
                 />
-                <span className="font-semibold text-gray-800 select-none text-sm sm:text-base">
-                    Estampillas v1
+                <span className="hidden sm:inline font-semibold text-gray-800 select-none text-sm sm:text-base">
+                    Gestión de Estampillas Digitales
                 </span>
             </div>
+
 
             <div className="hidden md:flex space-x-8 relative">
                 {sections.map((sec) => {

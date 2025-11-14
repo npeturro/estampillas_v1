@@ -17,7 +17,7 @@ export default function Login() {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    
+
     const onSubmit = async (data) => {
         try {
             setLoading(true);
@@ -52,7 +52,7 @@ export default function Login() {
         } catch (err) {
             console.error("Error al iniciar sesión:", err);
             toast.error("Error al iniciar sesión. Verificá tus credenciales.");
-        } finally{
+        } finally {
             setLoading(false);
         }
     };
@@ -60,18 +60,21 @@ export default function Login() {
     return (
         <>
             <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+                <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+                    Gestión de Estampillas Digitales
+                </h2>
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <img
                         alt="company"
                         src={"src/assets/logo_ck.png"}
                         className="mx-auto h-40 w-40 object-cover rounded-full shadow-lg"
                     />
-                    <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+                    <h4 className="mt-5 text-center text-xl/9 font-bold tracking-tight text-gray-900">
                         Iniciar sesión
-                    </h2>
+                    </h4>
                 </div>
 
-                <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+                <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div>
                             <div className="mt-2">

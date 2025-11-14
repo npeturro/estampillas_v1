@@ -156,7 +156,7 @@ export default function CheckoutStamps() {
 
         try {
             const response = await post("estampillas_online/estampillas_online", sendData);
-            if (response) {
+            if (response.id) {
                 toast.success("¡Estampillas solicitadas con éxito! Serás redirigido al inicio");
                 setTimeout(() => navigate("/online_stamps"), 1500);
             }
@@ -275,8 +275,8 @@ export default function CheckoutStamps() {
                             transition={{ duration: 0.35 }}
                             className="flex flex-col items-center gap-4"
                         >
-                            <Typography variant="h6" className="font-semibold text-gray-800">
-                                Cantidad de estampillas
+                            <Typography textAlign={"center"} variant="h6" className="font-semibold text-gray-800">
+                                Seleccione la cantidad de estampillas a comprar
                             </Typography>
 
                             <Box className="flex items-center gap-5">
@@ -316,7 +316,7 @@ export default function CheckoutStamps() {
                             </Box>
 
                             <Typography variant="body2" color="text.secondary">
-                                Seleccioná cuántas estampillas querés comprar.
+                                Cantidad de estampillas
                             </Typography>
                             <Box
                                 sx={{
@@ -395,7 +395,7 @@ export default function CheckoutStamps() {
 
                     {activeStep === 1 && (
                         <motion.div
-                            key="step3"
+                            key="step1"
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -15 }}
@@ -404,14 +404,10 @@ export default function CheckoutStamps() {
                         >
                             <Typography
                                 variant="h6"
-                                sx={{
-                                    fontWeight: 700,
-                                    color: "#1e293b",
-                                    textAlign: "center",
-                                    mb: 1,
-                                }}
+                                textAlign={"center"}
+                                className="font-semibold text-gray-800"
                             >
-                                Confirmación del pedido
+                                Revise los datos antes de continuar con el pago
                             </Typography>
 
                             <Box
@@ -450,20 +446,6 @@ export default function CheckoutStamps() {
                                     ${(cantidad * precioUnitario).toLocaleString("es-AR")}
                                 </Typography>
                             </Box>
-
-
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    textAlign: "center",
-                                    color: "text.secondary",
-                                    mt: 1,
-                                }}
-                            >
-                                Revisá los datos antes de continuar con el pago.
-                            </Typography>
-
-
                             <Box
                                 sx={{
                                     display: "flex",
@@ -508,7 +490,7 @@ export default function CheckoutStamps() {
 
                     {activeStep === 2 && (
                         <motion.div
-                            key="step3"
+                            key="step2"
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -15 }}

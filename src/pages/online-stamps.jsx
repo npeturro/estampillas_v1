@@ -11,19 +11,19 @@ export default function OnlineStamps() {
 
     return (
         <div>
-            <div className="flex items-center justify-end mb-4">
+            <div className="flex items-center justify-end mb-2">
                 <Chip
                     startDecorator={<AddIcon sx={{ fontSize: 18 }} />}
                     onClick={() => handleNavigate('/checkout_stamps')}
                     color="neutral"
-                    size="sm"
+                    size="lg"
                     variant="soft"
                     sx={{
                         cursor: 'pointer',
                         fontWeight: 500,
                         borderRadius: '8px',
-                        px: 1.5,
-                        py: 0.2,
+                        px: 3,
+                        py: 1,
                         transition: 'all 0.2s ease',
                         '&:hover': {
                             backgroundColor: 'neutral.softActiveBg',
